@@ -94,7 +94,7 @@ npm run dev          # Starts Next.js on Port 3000
 
 ##  Verification & Maintenance
 - **Build Integrity**: Run `next build` to verify Page Router and App Router compatibility.
-- **Performance Monitoring**: Check terminal logs for `Successfully connected to Redis Cloud! 🚀` on startup.
+- **Performance Monitoring**: Check terminal logs for `Successfully connected to Redis Cloud! ` on startup.
 - **Admin**: New uploads should be verified in the Cloudinary Media Library.
 
 ##  Contributing
