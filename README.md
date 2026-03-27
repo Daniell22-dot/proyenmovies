@@ -31,8 +31,8 @@ ProyenMovies is a premium cinematic streaming platform built with modern web tec
 
 1.  **Clone the repository** (if applicable) or navigate to the project directory:
     ```bash
-    cd d:\Media_site
-    ```
+    cd d:\Media_site  OR According to your project directory
+    ``` 
 
 2.  **Install dependencies**:
     ```bash
