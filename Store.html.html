@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Media Store - Buy Music & Videos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ===== CSS STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #8b5cf6;
+            --primary-dark: #7c3aed;
+            --secondary: #ec4899;
+            --accent: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: var(--gray-50);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--white);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .logo i {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .cart-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-50);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--gray-900), var(--gray-800));
+            color: white;
+            padding: 5rem 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero .highlight {
+            color: var(--primary);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--gray-300);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.5rem;
+        }
+
+        /* Media Grid */
+        .section {
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--gray-900);
+        }
+
+        .section-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 2rem;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        /* Media Card */
+        .media-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            border: 1px solid var(--gray-200);
+        }
+
+        .media-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .card-image {
+            height: 200px;
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .media-card:hover .card-overlay {
+            opacity: 1;
+        }
+
+        .play-btn {
+            width: 3rem;
+            height: 3rem;
+            background: white;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: white;
+            color: var(--gray-700);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-artist {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Preview Section */
+        .preview-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            padding: 2rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .preview-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .preview-player {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .preview-cover {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .control-btn {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            border: none;
+            background: var(--gray-100);
+            color: var(--gray-700);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .play-control {
+            width: 4rem;
+            height: 4rem;
+            background: var(--primary);
+            color: white;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--primary);
+            border-radius: 2px;
+            width: 30%;
+        }
+
+        .preview-notice {
+            background: var(--warning);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .purchase-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .purchase-header {
+            margin-bottom: 2rem;
+        }
+
+        .purchase-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .benefits-list {
+            margin: 2rem 0;
+        }
+
+        .benefit {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .benefit i {
+            color: var(--accent);
+        }
+
+        /* Admin Panel */
+        .admin-login {
+            max-width: 400px;
+            margin: 2rem auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .login-icon {
+            width: 4rem;
+            height: 4rem;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .admin-dashboard {
+            display: none;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--gray-900);
+            color: white;
+            padding: 3rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            text-align: center;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .footer-social a {
+            color: white;
+            font-size: 1.25rem;
+            transition: color 0.3s;
+        }
+
+        .footer-social a:hover {
+            color: var(--primary);
+        }
+
+        .copyright {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-4 { margin-top: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .p-4 { padding: 1rem; }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--gray-900);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===== HTML CONTENT ===== -->
+    <!-- Navigation -->
+    <nav>
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <span>Artist Media Store</span>
+            </div>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" onclick="showSection('home')">Home</a>
+                <a href="#" class="nav-link" onclick="showSection('browse')">Browse</a>
+                <a href="#" class="nav-link" onclick="showSection('preview')">Preview</a>
+                <a href="#" class="nav-link" onclick="showSection('admin')">Admin</a>
+                <button class="cart-btn">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Home Section -->
+        <section id="home-section" class="section">
+            <div class="hero">
+                <div class="container">
+                    <h1>Your Music.<br><span class="highlight">Your Terms.</span></h1>
+                    <p>Buy songs and videos directly from the artist. No subscriptions, no accounts, just great music.</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" onclick="showSection('browse')">
+                            <i class="fas fa-store"></i> Browse Music
+                        </button>
+                        <button class="btn btn-outline" onclick="playDemo()">
+                            <i class="fas fa-play"></i> Play Demo
+                        </button>
+                    </div>
+                    <div class="stats">
+                        <div class="stat">
+                            <div class="stat-number">100+</div>
+                            <div class="stat-label">Tracks</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">24/7</div>
+                            <div class="stat-label">Access</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Subscriptions</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-number">Instant</div>
+                            <div class="stat-label">Delivery</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Media -->
+            <div class="container">
+                <h2 class="section-title">Latest Releases</h2>
+                <p class="section-subtitle">Preview and purchase the newest tracks</p>
+                <div class="media-grid" id="featured-media">
+                    <!-- Media cards will be loaded by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Browse Section -->
+        <section id="browse-section" class="section hidden">
+            <div class="container">
+                <div style="margin-bottom: 2rem;">
+                    <h1 class="section-title">Browse All Media</h1>
+                    <p class="section-subtitle">Preview and purchase songs and videos</p>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="filterMedia('all')">All</button>
+                        <button class="btn btn-outline" onclick="filterMedia('song')">Songs</button>
+                        <button class="btn btn-outline" onclick="filterMedia('video')">Videos</button>
+                        <button class="btn btn-outline" onclick="filterMedia('album')">Albums</button>
+                    </div>
+                </div>
+
+                <div class="media-grid" id="browse-media">
+                    <!-- Media cards will be loaded by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Preview Section -->
+        <section id="preview-section" class="section hidden">
+            <div class="container">
+                <button class="btn btn-outline mb-4" onclick="showSection('browse')">
+                    <i class="fas fa-arrow-left"></i> Back to Browse
+                </button>
+                
+                <div class="preview-container">
+                    <!-- Left Column - Player -->
+                    <div class="preview-player">
+                        <div class="preview-cover">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        
+                        <h2 id="preview-title">Summer Vibes</h2>
+                        <p id="preview-artist" style="color: var(--gray-600);">Your Artist</p>
+                        <p id="preview-description" style="margin: 1rem 0;">A chill summer anthem perfect for beach days and road trips.</p>
+                        
+                        <div class="player-controls">
+                            <button class="control-btn" onclick="playerSkip(-10)">
+                                <i class="fas fa-backward"></i>
+                            </button>
+                            <button class="control-btn play-control" onclick="togglePreview()">
+                                <i class="fas fa-play" id="play-icon"></i>
+                            </button>
+                            <button class="control-btn" onclick="playerSkip(10)">
+                                <i class="fas fa-forward"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="progress-bar" onclick="seekAudio(event)">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; color: var(--gray-600);">
+                            <span id="current-time">0:00</span>
+                            <span>0:30</span>
+                        </div>
+                        
+                        <div class="preview-notice">
+                            <i class="fas fa-lock"></i> Preview Mode - 30 seconds only
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Purchase -->
+                    <div class="purchase-card">
+                        <div class="purchase-header">
+                            <h3>Ready for the full experience?</h3>
+                            <div class="purchase-price">$1.99</div>
+                            <p style="color: var(--gray-600);">One-time purchase</p>
+                        </div>
+                        
+                        <div class="benefits-list">
+                            <div class="benefit">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Full track access (3:00)</span>
+                            </div>
+                            <div class="benefit">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Play up to 10 times</span>
+                            </div>
+                            <div class="benefit">
+                                <i class="fas fa-check-circle"></i>
+                                <span>24-hour access window</span>
+                            </div>
+                            <div class="benefit">
+                                <i class="fas fa-check-circle"></i>
+                                <span>No account required</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" style="width: 100%; padding: 1rem;" onclick="processPurchase()">
+                            <i class="fas fa-shopping-cart"></i> Buy Now - $1.99
+                        </button>
+                        
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--gray-200);">
+                            <p style="font-size: 0.875rem; color: var(--gray-600); text-align: center;">
+                                <i class="fas fa-lock"></i> Secure payment powered by Stripe
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Payment Success Section -->
+        <section id="success-section" class="section hidden">
+            <div class="container">
+                <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+                    <div style="font-size: 4rem; color: var(--accent); margin-bottom: 1rem;">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h1 class="section-title">Payment Successful!</h1>
+                    <p style="color: var(--gray-600); margin-bottom: 2rem;">Thank you for your purchase. Your content is now ready to access.</p>
+                    
+                    <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: var(--shadow); text-align: left; margin-bottom: 2rem;">
+                        <h3 style="margin-bottom: 1rem;">Your Purchase Details</h3>
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--gray-600);">Item:</span>
+                                <span style="font-weight: 600;">Summer Vibes</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--gray-600);">Amount Paid:</span>
+                                <span style="color: var(--accent); font-weight: 700;">$1.99</span>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-600); display: block; margin-bottom: 0.5rem;">Access Token:</span>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <code style="flex: 1; background: var(--gray-100); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.875rem;">
+                                        acc_token_123456
+                                    </code>
+                                    <button class="btn btn-outline" onclick="copyToken()">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: 0.5rem;">
+                                    This token gives you 24-hour access. Keep it safe!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" onclick="showSection('browse')">
+                            Browse More Content
+                        </button>
+                        <button class="btn btn-outline" onclick="showSection('home')">
+                            Go Home
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Admin Section -->
+        <section id="admin-section" class="section hidden">
+            <div class="container">
+                <!-- Login Form -->
+                <div id="admin-login">
+                    <div class="admin-login">
+                        <div class="login-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h2>Admin Login</h2>
+                        <p style="color: var(--gray-600); margin-bottom: 2rem;">Enter admin password to access the dashboard</p>
+                        
+                        <div class="form-group">
+                            <label>Admin Password</label>
+                            <input type="password" id="admin-password" placeholder="Enter password">
+                        </div>
+                        
+                        <div id="login-error" style="color: var(--danger); margin: 1rem 0; display: none;"></div>
+                        
+                        <button class="btn btn-primary" style="width: 100%;" onclick="adminLogin()">
+                            Login to Admin Panel
+                        </button>
+                        
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--gray-200);">
+                            <p style="font-size: 0.875rem; color: var(--gray-600);">
+                                Demo password: <code>admin123</code>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dashboard -->
+                <div id="admin-dashboard" class="hidden">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h1 class="section-title">Admin Dashboard</h1>
+                        <button class="btn btn-outline" onclick="adminLogout()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div>
+                                <h3 style="font-size: 0.875rem; color: var(--gray-600);">Total Revenue</h3>
+                                <div style="font-size: 1.5rem; font-weight: 700;">$1,284.50</div>
+                            </div>
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-card">
+                            <div>
+                                <h3 style="font-size: 0.875rem; color: var(--gray-600);">Total Plays</h3>
+                                <div style="font-size: 1.5rem; font-weight: 700;">12,560</div>
+                            </div>
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <div class="stat-card">
+                            <div>
+                                <h3 style="font-size: 0.875rem; color: var(--gray-600);">Total Purchases</h3>
+                                <div style="font-size: 1.5rem; font-weight: 700;">642</div>
+                            </div>
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-card">
+                            <div>
+                                <h3 style="font-size: 0.875rem; color: var(--gray-600);">Published Media</h3>
+                                <div style="font-size: 1.5rem; font-weight: 700;">24</div>
+                            </div>
+                            <i class="fas fa-music"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity -->
+                    <div style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: var(--shadow); margin-top: 2rem;">
+                        <h2 style="margin-bottom: 1.5rem;">Recent Activity</h2>
+                        <div style="display: grid; gap: 1rem;">
+                            <div style="display: flex; justify-content: space-between; padding: 1rem; background: var(--gray-50); border-radius: 0.5rem;">
+                                <div>
+                                    <div style="font-weight: 600;">Today, 10:30 AM</div>
+                                    <div style="color: var(--gray-600); font-size: 0.875rem;">New purchase: "Summer Vibes" - $1.99</div>
+                                </div>
+                                <div style="color: var(--accent);">+$1.99</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding: 1rem; background: var(--gray-50); border-radius: 0.5rem;">
+                                <div>
+                                    <div style="font-weight: 600;">Today, 9:15 AM</div>
+                                    <div style="color: var(--gray-600); font-size: 0.875rem;">Media uploaded: "Morning Coffee"</div>
+                                </div>
+                                <div style="color: var(--primary);">Uploaded</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div style="background: linear-gradient(135deg, var(--gray-900), var(--gray-800)); color: white; padding: 2rem; border-radius: 1rem; margin-top: 2rem;">
+                        <h2 style="margin-bottom: 1.5rem;">Quick Actions</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <button class="btn btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                <i class="fas fa-upload"></i> Upload Media
+                            </button>
+                            <button class="btn btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                <i class="fas fa-chart-bar"></i> View Analytics
+                            </button>
+                            <button class="btn btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);">
+                                <i class="fas fa-download"></i> Export Reports
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <i class="fas fa-music"></i>
+                    Artist Media Store
+                </div>
+                <p style="color: var(--gray-400); max-width: 400px; margin: 0 auto;">
+                    Buy music and videos directly from the artist. No subscriptions, no accounts.
+                </p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+                <div class="copyright">
+                    &copy; 2024 Artist Media Store. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Audio Player -->
+    <audio id="audio-player" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // Mock Media Data
+        const mediaData = [
+            {
+                id: 1,
+                title: "Summer Vibes",
+                artist: "Your Artist",
+                price: 1.99,
+                preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                type: "song",
+                tags: ["pop", "summer", "chill"],
+                description: "A chill summer anthem perfect for beach days and road trips.",
+                duration: 180
+            },
+            {
+                id: 2,
+                title: "Midnight Drive",
+                artist: "Your Artist",
+                price: 2.49,
+                preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                type: "song",
+                tags: ["rnb", "night", "drive"],
+                description: "Late night driving music with smooth beats and atmospheric sounds.",
+                duration: 240
+            },
+            {
+                id: 3,
+                title: "Morning Coffee",
+                artist: "Your Artist",
+                price: 1.49,
+                preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                type: "song",
+                tags: ["acoustic", "morning", "calm"],
+                description: "Perfect acoustic track for your morning routine and coffee moments.",
+                duration: 210
+            },
+            {
+                id: 4,
+                title: "Electric Dreams",
+                artist: "Your Artist",
+                price: 2.99,
+                preview: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+                type: "song",
+                tags: ["electronic", "dance", "energy"],
+                description: "Upbeat electronic track for parties and workouts.",
+                duration: 195
+            }
+        ];
+
+        // App State
+        let currentSection = 'home';
+        let currentMedia = null;
+        let isPlaying = false;
+        let currentTime = 0;
+        let cartCount = 0;
+
+        // DOM Elements
+        const audioPlayer = document.getElementById('audio-player');
+        const playIcon = document.getElementById('play-icon');
+        const progressFill = document.getElementById('progress-fill');
+        const currentTimeDisplay = document.getElementById('current-time');
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            renderMediaCards();
+            setupAudioPlayer();
+            updateCartCount();
+        });
+
+        // Navigation Functions
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(`${sectionId}-section`).classList.remove('hidden');
+            
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Update current section
+            currentSection = sectionId;
+            
+            // Render appropriate content
+            if (sectionId === 'home') {
+                renderFeaturedMedia();
+            } else if (sectionId === 'browse') {
+                renderBrowseMedia();
+            } else if (sectionId === 'preview' && currentMedia) {
+                loadPreview(currentMedia);
+            }
+        }
+
+        // Media Functions
+        function renderMediaCards() {
+            const featuredGrid = document.getElementById('featured-media');
+            const browseGrid = document.getElementById('browse-media');
+            
+            featuredGrid.innerHTML = '';
+            browseGrid.innerHTML = '';
+            
+            mediaData.forEach(media => {
+                const card = createMediaCard(media);
+                featuredGrid.appendChild(card.cloneNode(true));
+                browseGrid.appendChild(card.cloneNode(true));
+            });
+        }
+
+        function createMediaCard(media) {
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.innerHTML = `
+                <div class="card-image">
+                    <div class="card-overlay">
+                        <button class="play-btn" onclick="playPreview(${media.id})">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                    <div class="card-badge">${media.type}</div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${media.title}</h3>
+                    <p class="card-artist">${media.artist}</p>
+                    <div class="card-tags">
+                        ${media.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    <div class="card-footer">
+                        <div class="price">$${media.price.toFixed(2)}</div>
+                        <div class="card-actions">
+                            <button class="btn btn-outline btn-sm" onclick="playPreview(${media.id})">
+                                <i class="fas fa-play"></i> Preview
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="viewPreview(${media.id})">
+                                <i class="fas fa-shopping-cart"></i> Buy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderFeaturedMedia() {
+            const grid = document.getElementById('featured-media');
+            grid.innerHTML = '';
+            mediaData.slice(0, 4).forEach(media => {
+                grid.appendChild(createMediaCard(media));
+            });
+        }
+
+        function renderBrowseMedia() {
+            const grid = document.getElementById('browse-media');
+            grid.innerHTML = '';
+            mediaData.forEach(media => {
+                grid.appendChild(createMediaCard(media));
+            });
+        }
+
+        function filterMedia(type) {
+            const grid = document.getElementById('browse-media');
+            grid.innerHTML = '';
+            
+            const filteredMedia = type === 'all' 
+                ? mediaData 
+                : mediaData.filter(media => media.type === type);
+            
+            filteredMedia.forEach(media => {
+                grid.appendChild(createMediaCard(media));
+            });
+        }
+
+        // Preview Functions
+        function viewPreview(mediaId) {
+            const media = mediaData.find(m => m.id === mediaId);
+            if (!media) return;
+            
+            currentMedia = media;
+            showSection('preview');
+            loadPreview(media);
+        }
+
+        function loadPreview(media) {
+            document.getElementById('preview-title').textContent = media.title;
+            document.getElementById('preview-artist').textContent = media.artist;
+            document.getElementById('preview-description').textContent = media.description;
+            
+            // Set audio source
+            audioPlayer.src = media.preview;
+            
+            // Reset player
+            isPlaying = false;
+            currentTime = 0;
+            audioPlayer.currentTime = 0;
+            updateProgress();
+            playIcon.className = 'fas fa-play';
+        }
+
+        // Audio Player Functions
+        function setupAudioPlayer() {
+            audioPlayer.addEventListener('timeupdate', updateProgress);
+            audioPlayer.addEventListener('ended', function() {
+                isPlaying = false;
+                playIcon.className = 'fas fa-play';
+            });
+            
+            // Limit to 30 seconds for preview
+            audioPlayer.addEventListener('timeupdate', function() {
+                if (audioPlayer.currentTime >= 30) {
+                    audioPlayer.pause();
+                    isPlaying = false;
+                    playIcon.className = 'fas fa-play';
+                    showToast('Preview ended. Ready to hear the rest?');
+                }
+            });
+        }
+
+        function togglePreview() {
+            if (!audioPlayer.src) return;
+            
+            if (isPlaying) {
+                audioPlayer.pause();
+                playIcon.className = 'fas fa-play';
+            } else {
+                audioPlayer.play();
+                playIcon.className = 'fas fa-pause';
+            }
+            isPlaying = !isPlaying;
+        }
+
+        function playerSkip(seconds) {
+            if (!audioPlayer.src) return;
+            
+            audioPlayer.currentTime += seconds;
+            if (audioPlayer.currentTime < 0) audioPlayer.currentTime = 0;
+            if (audioPlayer.currentTime > 30) audioPlayer.currentTime = 30;
+        }
+
+        function updateProgress() {
+            if (!audioPlayer.src) return;
+            
+            const progress = (audioPlayer.currentTime / 30) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            // Format time
+            const minutes = Math.floor(audioPlayer.currentTime / 60);
+            const seconds = Math.floor(audioPlayer.currentTime % 60);
+            currentTimeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function seekAudio(event) {
+            if (!audioPlayer.src) return;
+            
+            const progressBar = event.currentTarget;
+            const rect = progressBar.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = x / rect.width;
+            
+            audioPlayer.currentTime = percentage * 30;
+        }
+
+        // Purchase Functions
+        function processPurchase() {
+            if (!currentMedia) return;
+            
+            cartCount++;
+            updateCartCount();
+            
+            showSection('success');
+            showToast('Purchase successful! Access token generated.');
+        }
+
+        function copyToken() {
+            navigator.clipboard.writeText('acc_token_123456')
+                .then(() => showToast('Access token copied to clipboard!'))
+                .catch(() => showToast('Failed to copy token'));
+        }
+
+        // Admin Functions
+        function adminLogin() {
+            const password = document.getElementById('admin-password').value;
+            const errorElement = document.getElementById('login-error');
+            
+            if (password === 'admin123') {
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                errorElement.style.display = 'none';
+                showToast('Admin login successful!');
+            } else {
+                errorElement.textContent = 'Invalid admin password';
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function adminLogout() {
+            document.getElementById('admin-login').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('admin-password').value = '';
+            showToast('Logged out successfully');
+        }
+
+        // Utility Functions
+        function playDemo() {
+            const demoAudio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+            demoAudio.play();
+            showToast('Playing demo...');
+        }
+
+        function playPreview(mediaId) {
+            const media = mediaData.find(m => m.id === mediaId);
+            if (!media) return;
+            
+            currentMedia = media;
+            
+            // Play audio
+            const previewAudio = new Audio(media.preview);
+            previewAudio.currentTime = 0;
+            previewAudio.play();
+            
+            // Auto-stop after 30 seconds
+            setTimeout(() => {
+                previewAudio.pause();
+            }, 30000);
+            
+            showToast(`Playing preview: ${media.title}`);
+        }
+
+        function updateCartCount() {
+            document.querySelector('.cart-count').textContent = cartCount;
+        }
+
+        function showToast(message) {
+            // Remove existing toast
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
+            
+            // Create new toast
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Initialize featured media
+        renderFeaturedMedia();
+    </script>
+</body>
+</html>
