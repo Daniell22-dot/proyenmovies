@@ -42,3 +42,8 @@ store.html.html
 settings.json 
 node_modules/
 .bin
+package-lock.json
+package.json
+settings.json
+store.html.html
+store.html
