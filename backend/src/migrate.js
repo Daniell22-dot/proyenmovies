@@ -81,17 +81,32 @@ async function migrate() {
       )
     `);
     console.log('  Table created/verified: user_subscriptions');
+    
+    // 4. Media Purchases Table (for individual buy-to-own)
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS media_purchases (
+        id VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+        user_id VARCHAR(36) NOT NULL,
+        media_id VARCHAR(36) NOT NULL,
+        amount DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (media_id) REFERENCES media_items(id) ON DELETE CASCADE,
+        UNIQUE KEY idx_user_media (user_id, media_id)
+      )
+    `);
+    console.log('  Table created/verified: media_purchases');
 
     // Insert default plans if they don't exist
     const [planCount] = await connection.query('SELECT COUNT(*) as count FROM plans');
     if (planCount[0].count === 0) {
       await connection.query(`
         INSERT INTO plans (name, price, duration_days, features) VALUES
-        ('Free', 0.00, 3650, '["Watch free movies", "Standard quality"]'),
-        ('Premium', 9.99, 30, '["No ads", "HD quality", "Access all movies"]'),
-        ('VIP', 19.99, 30, '["4K quality", "Live shows access", "Early access to new movies"]')
+        ('Proyen Weekly', 199.00, 7, '["720p HD Streaming", "1 Screen", "Mobile + Web Access"]'),
+        ('Proyen Monthly', 649.00, 30, '["1080p Full HD", "2 Screens", "Offline Downloads", "No Ads"]'),
+        ('Proyen Family', 1099.00, 30, '["4K Ultra HD", "4 Screens", "Kids Profile", "Priority Support"]')
       `);
-      console.log('  Inserted default plans');
+      console.log('  Inserted default ProyenMovies KES plans');
     }
 
     console.log('\n Migration complete!');

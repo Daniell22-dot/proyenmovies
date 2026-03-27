@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Play, Pause, Volume2, VolumeX, Clock, Star, Calendar, ArrowLeft, Info, Share2, Plus, Check } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, Clock, Star, Calendar, ArrowLeft, Info, Share2, Plus, Check, Download, Lock } from 'lucide-react'
 import Link from 'next/link'
 import Hls from 'hls.js'
 
@@ -35,6 +35,7 @@ export default function MovieDetailsPage() {
     const [isPlaying, setIsPlaying] = useState(false)
     const [isMuted, setIsMuted] = useState(false)
     const [inWatchlist, setInWatchlist] = useState(false)
+    const [hasAccess, setHasAccess] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
     const hlsRef = useRef<Hls | null>(null)
 
@@ -108,6 +109,28 @@ export default function MovieDetailsPage() {
         }
         checkWatchlist()
     }, [movie]) // Depend on movie to ensure it's loaded
+
+    useEffect(() => {
+        const checkAccessStatus = async () => {
+            if (!movie) return
+            const token = localStorage.getItem('token')
+            if (!token) return
+
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+                const res = await fetch(`${apiUrl}/media/${movie.id}/access`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+                const data = await res.json()
+                if (data.success) {
+                    setHasAccess(data.hasAccess)
+                }
+            } catch (error) {
+                console.error('Failed to check access', error)
+            }
+        }
+        checkAccessStatus()
+    }, [movie])
 
     useEffect(() => {
         const video = videoRef.current
@@ -209,6 +232,19 @@ export default function MovieDetailsPage() {
         }
     }
 
+    const handleDownload = async () => {
+        if (!hasAccess) {
+            alert('A subscription is required to download movies.')
+            return
+        }
+        
+        const token = localStorage.getItem('token')
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+        
+        // Use window.location to trigger a direct browser download from the secure route
+        window.location.href = `${apiUrl}/media/download/${movie?.id}?token=${token}`
+    }
+
     if (loading || !movie) {
         return (
             <div className="min-h-screen bg-black pt-32 pb-20 px-4 flex items-center justify-center">
@@ -301,8 +337,17 @@ export default function MovieDetailsPage() {
                                 className="flex items-center space-x-3 bg-primary text-white px-10 py-4 rounded-md font-black uppercase tracking-widest hover:bg-accent transition transform hover:scale-105"
                             >
                                 <Play className="w-6 h-6 fill-current" />
-                                <span>{isPlaying ? 'Pause' : 'Watch Full Movie'}</span>
+                                <span>{isPlaying ? 'Pause' : hasAccess ? 'Watch Full Movie' : 'Watch Trailer'}</span>
                             </button>
+                            {hasAccess && (
+                                <button
+                                    onClick={handleDownload}
+                                    className="flex items-center space-x-3 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-md font-black uppercase tracking-widest transition"
+                                >
+                                    <Download className="w-6 h-6" />
+                                    <span>Download</span>
+                                </button>
+                            )}
                             <button
                                 onClick={toggleWatchlist}
                                 className={`flex items-center space-x-3 px-8 py-4 rounded-md font-black uppercase tracking-widest transition border ${inWatchlist
@@ -346,21 +391,23 @@ export default function MovieDetailsPage() {
                             </div>
                         </div>
 
-                        <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20">
-                            <div className="flex items-center space-x-3 mb-4">
-                                <Info className="w-5 h-5 text-primary" />
-                                <h3 className="font-black uppercase italic tracking-tighter">Subscription Required</h3>
+                        {!hasAccess && (
+                            <div className="p-8 rounded-2xl bg-primary/10 border border-primary/20 animate-pulse">
+                                <div className="flex items-center space-x-3 mb-4">
+                                    <Lock className="w-5 h-5 text-primary" />
+                                    <h3 className="font-black uppercase italic tracking-tighter">Full Access Locked</h3>
+                                </div>
+                                <p className="text-sm text-white/60 mb-6 font-medium">
+                                    You are currently watching the trailer. This content is available for Premium and VIP subscribers.
+                                </p>
+                                <Link
+                                    href="/subscriptions"
+                                    className="block w-full text-center py-4 bg-primary text-white text-sm font-black uppercase tracking-widest rounded-md transition hover:bg-accent border shadow-lg shadow-primary/20"
+                                >
+                                    Unlock Now
+                                </Link>
                             </div>
-                            <p className="text-sm text-white/60 mb-6">
-                                This movie is available for Premium and VIP subscribers. Join now to unlock full access.
-                            </p>
-                            <Link
-                                href="/subscriptions"
-                                className="block w-full text-center py-3 bg-primary text-white text-xs font-black uppercase tracking-widest rounded transition hover:bg-accent"
-                            >
-                                Upgrade Plan
-                            </Link>
-                        </div>
+                        )}
                     </div>
                 </div>
             </main>

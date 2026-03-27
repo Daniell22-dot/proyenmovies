@@ -1,12 +1,13 @@
-// routes/mediaRoutes.js - COMPLETE
-const express = require('express');
-const router = express.Router();
-const mediaController = require('../src/controllers/mediaController');
+const auth = require('../src/middleware/auth');
 
 // Public routes
 router.get('/', mediaController.getAllMedia);
 router.get('/preview/:id', mediaController.getPreview);
 router.get('/:id', mediaController.getMediaById);
+router.get('/:id/access', auth.authenticateToken, mediaController.checkAccess);
+
+// Secured routes
+router.get('/download/:id', auth.authenticateToken, mediaController.downloadMedia); 
 
 // Admin routes (add authentication middleware later)
 router.post('/', mediaController.createMedia);

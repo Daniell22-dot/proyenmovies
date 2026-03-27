@@ -365,27 +365,93 @@ exports.recordPurchase = async (req, res) => {
   }
 };
 
-// NEW: Get file from database (if stored as BLOB)
-exports.getMediaFile = async (req, res) => {
+// NEW: Secure Download with Purchase/Subscription verification
+exports.downloadMedia = async (req, res) => {
   try {
-    const [media] = await pool.query(
-      'SELECT file_name, mime_type FROM media_items WHERE id = ?',
-      [req.params.id]
-    );
+    const userId = req.user.id;
+    const { id } = req.params;
 
+    // 1. Get media details
+    const [media] = await pool.query('SELECT * FROM media_items WHERE id = ?', [id]);
     if (media.length === 0) {
-      return res.status(404).json({ success: false, error: 'File not found' });
+      return res.status(404).json({ success: false, error: 'Media not found' });
     }
 
-    // If file is stored as BLOB, you would send the binary data
-    // For now, redirect to the file path
-    res.json({
-      success: true,
-      file_name: media[0].file_name,
-      mime_type: media[0].mime_type
+    const item = media[0];
+
+    // 2. Check if it's free
+    if (item.is_free) {
+        return serveFile(item, res);
+    }
+
+    // 3. Check for active subscription
+    const [subs] = await pool.query(
+      'SELECT id FROM user_subscriptions WHERE user_id = ? AND status = "active" AND expires_at > NOW()',
+      [userId]
+    );
+
+    // 4. Check for individual purchase
+    const [purchases] = await pool.query(
+      'SELECT id FROM media_purchases WHERE user_id = ? AND media_id = ?',
+      [userId, id]
+    );
+
+    // 5. Authorized check
+    if (subs.length > 0 || purchases.length > 0) {
+      return serveFile(item, res);
+    }
+
+    res.status(403).json({ 
+      success: false, 
+      error: 'Access Denied', 
+      message: 'You need an active subscription or a direct purchase to view/download this content.' 
     });
+
   } catch (error) {
-    console.error('Error fetching file:', error);
+    console.error('Download error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+// Helper to serve file
+function serveFile(item, res) {
+  const filePath = __dirname + '/../../' + item.file_path;
+  if (fs.existsSync(filePath)) {
+    return res.download(filePath, item.file_name);
+  } else {
+    return res.status(404).json({ success: false, error: 'Physical media file not found on server' });
+  }
+}
+
+// NEW: Check if user has access to media (frontend helper)
+exports.checkAccess = async (req, res) => {
+  try {
+    if (!req.user) return res.json({ success: true, hasAccess: false });
+    
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const [media] = await pool.query('SELECT is_free FROM media_items WHERE id = ?', [id]);
+    if (media.length === 0) return res.status(404).json({ success: false, error: 'Media not found' });
+    
+    if (media[0].is_free) return res.json({ success: true, hasAccess: true });
+
+    const [subs] = await pool.query(
+      'SELECT id FROM user_subscriptions WHERE user_id = ? AND status = "active" AND expires_at > NOW()',
+      [userId]
+    );
+    if (subs.length > 0) return res.json({ success: true, hasAccess: true });
+
+    const [purchases] = await pool.query(
+      'SELECT id FROM media_purchases WHERE user_id = ? AND media_id = ?',
+      [userId, id]
+    );
+    if (purchases.length > 0) return res.json({ success: true, hasAccess: true });
+
+    res.json({ success: true, hasAccess: false });
+  } catch (error) {
+    console.error('Check access error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+

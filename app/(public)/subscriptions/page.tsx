@@ -6,24 +6,24 @@ import { Check, Zap, Crown, Play } from 'lucide-react'
 
 // UI config mapping based on plan name
 const planUIConfig: Record<string, any> = {
-    'Free': {
-        icon: <Play className="w-6 h-6" />,
+    'Proyen Weekly': {
+        icon: <Play className="w-6 h-6 text-white/60" />,
         color: 'bg-white/5',
         buttonText: 'Get Started',
         featured: false,
-        durationText: 'Forever'
+        durationText: 'Weekly'
     },
-    'Premium': {
+    'Proyen Monthly': {
         icon: <Zap className="w-6 h-6 text-primary" />,
         color: 'bg-primary/10 border-primary/50',
         buttonText: 'Subscribe Now',
         featured: true,
         durationText: 'Monthly'
     },
-    'VIP': {
+    'Proyen Family': {
         icon: <Crown className="w-6 h-6 text-yellow-500" />,
         color: 'bg-yellow-500/10 border-yellow-500/50',
-        buttonText: 'Go VIP',
+        buttonText: 'Go Family',
         featured: false,
         durationText: 'Monthly'
     }
@@ -118,7 +118,7 @@ export default function SubscriptionsPage() {
                                     {plan.icon}
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-3xl font-black text-white">${Number(plan.price).toFixed(2)}</div>
+                                    <div className="text-3xl font-black text-white">KES {Number(plan.price).toLocaleString()}</div>
                                     <div className="text-xs text-white/40 font-bold uppercase tracking-widest">{plan.duration}</div>
                                 </div>
                             </div>

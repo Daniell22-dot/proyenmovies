@@ -14,9 +14,19 @@ ProyenMovies is a premium cinematic streaming platform built with modern web tec
 
 *   **Cinematic UI/UX**: Dark mode aesthetic with premium styling and responsive design.
 *   **Browse & Discovery**: Easily search, filter, and discover movies and TV shows.
+*   **Secure Access**: Gated content system where movies/downloads are restricted to paid subscribers or direct buyers.
+*   **Localized Pricing**: Subscription plans tailored for the Kenyan market in KES.
 *   **Personalization**: Watchlists and AI-driven personalized movie recommendations (via backend API).
 *   **Stripe Integration**: Secure checkout sessions and webhook handling for premium subscriptions.
 *   **Admin Dashboard**: Manage media, track user statistics, and upload new content.
+
+## Subscription Tiers (KES)
+
+| Plan | Price | Access |
+| :--- | :--- | :--- |
+| **Proyen Weekly** | KES 199 | 1 Screen, 720p HD |
+| **Proyen Monthly** | KES 649 | 2 Screens, 1080p Full HD, Downloads |
+| **Proyen Family** | KES 1,099 | 4 Screens, 4K Ultra HD, Priority Support |
 
 ##  Getting Started
 
