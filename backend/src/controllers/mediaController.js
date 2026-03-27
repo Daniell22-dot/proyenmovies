@@ -1,11 +1,36 @@
-// src/controllers/mediaController.js - COMPLETE VERSION
+// src/controllers/mediaController.js
 const pool = require('../config/database');
 const fs = require('fs');
+const redis = require('../config/redis');
+const cloudinary = require('../config/cloudinary');
+
+// Helper to clear media cache
+async function clearMediaCache() {
+  try {
+    const keys = await redis.keys('media:*');
+    if (keys.length > 0) {
+      await redis.del(keys);
+    }
+  } catch (err) {
+    console.error('Redis CLEAR error:', err);
+  }
+}
 
 // Get all published media (public)
 exports.getAllMedia = async (req, res) => {
   try {
     const { type, search, limit = 20, offset = 0 } = req.query;
+    const cacheKey = `media:list:${type || 'all'}:${search || 'none'}:${limit}:${offset}`;
+
+    // 1. Try to get from cache
+    try {
+      const cachedData = await redis.get(cacheKey);
+      if (cachedData) {
+        return res.json({ success: true, data: JSON.parse(cachedData), source: 'cache' });
+      }
+    } catch (err) {
+      console.error('Redis GET error:', err);
+    }
 
     let query = 'SELECT * FROM media_items WHERE is_published = true';
     const params = [];
@@ -39,7 +64,6 @@ exports.getAllMedia = async (req, res) => {
           try {
             item.tags = JSON.parse(item.tags);
           } catch (e) {
-            console.error('Failed to parse tags:', item.tags);
             item.tags = [];
           }
         }
@@ -48,7 +72,16 @@ exports.getAllMedia = async (req, res) => {
       }
     });
 
-    res.json({ success: true, data: media });
+    // 2. Save to cache
+    try {
+      await redis.set(cacheKey, JSON.stringify(media), {
+        EX: 3600 // 1 hour
+      });
+    } catch (err) {
+      console.error('Redis SET error:', err);
+    }
+
+    res.json({ success: true, data: media, source: 'database' });
   } catch (error) {
     console.error('Error fetching media:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -58,56 +91,54 @@ exports.getAllMedia = async (req, res) => {
 // Get media by ID (public)
 exports.getMediaById = async (req, res) => {
   try {
+    const { id } = req.params;
+    const cacheKey = `media:item:${id}`;
+
+    // 1. Try to get from cache
+    try {
+      const cachedData = await redis.get(cacheKey);
+      if (cachedData) {
+        return res.json({ success: true, data: JSON.parse(cachedData), source: 'cache' });
+      }
+    } catch (err) {
+      console.error('Redis GET error:', err);
+    }
+
     const [media] = await pool.query(
       'SELECT * FROM media_items WHERE id = ? AND is_published = true',
-      [req.params.id]
+      [id]
     );
 
     if (media.length === 0) {
       return res.status(404).json({ success: false, error: 'Media not found' });
     }
 
-    if (media[0].price !== undefined && media[0].price !== null) {
-      media[0].price = parseFloat(media[0].price);
-    } else {
-      media[0].price = 0;
-    }
+    const item = media[0];
 
-    if (media[0].tags) {
-      if (typeof media[0].tags === 'string') {
-        try {
-          media[0].tags = JSON.parse(media[0].tags);
-        } catch (e) {
-          console.error('Failed to parse tags:', media[0].tags);
-          media[0].tags = [];
-        }
+    // Format fields
+    if (item.price !== undefined && item.price !== null) {
+      item.price = parseFloat(item.price);
+    }
+    if (item.tags && typeof item.tags === 'string') {
+      try {
+        item.tags = JSON.parse(item.tags);
+      } catch (e) {
+        item.tags = [];
       }
-    } else {
-      media[0].tags = [];
     }
 
-    res.json({ success: true, data: media[0] });
+    // 2. Save to cache
+    try {
+      await redis.set(cacheKey, JSON.stringify(item), {
+        EX: 3600 // 1 hour
+      });
+    } catch (err) {
+      console.error('Redis SET error:', err);
+    }
+
+    res.json({ success: true, data: item, source: 'database' });
   } catch (error) {
     console.error('Error fetching media:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// Get preview URL
-exports.getPreview = async (req, res) => {
-  try {
-    const [media] = await pool.query(
-      'SELECT preview_url FROM media_items WHERE id = ? AND is_published = true',
-      [req.params.id]
-    );
-
-    if (media.length === 0 || !media[0].preview_url) {
-      return res.status(404).json({ success: false, error: 'Preview not found' });
-    }
-
-    res.json({ success: true, preview_url: media[0].preview_url });
-  } catch (error) {
-    console.error('Error fetching preview:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -118,39 +149,28 @@ exports.createMedia = async (req, res) => {
     const {
       title, description, media_type, price, artist,
       tags, is_free, access_type, file_path, file_name,
-      file_size, mime_type, thumbnail_url, preview_url, trailer_url, hls_manifest_url,
-      is_published = true
+      file_size, mime_type, thumbnail_url, preview_url, is_published = true
     } = req.body;
 
     const priceNum = parseFloat(price) || 0;
 
     const [result] = await pool.query(
       `INSERT INTO media_items 
-      (title, description, is_live, media_type, price, artist, rating, release_date, tags, is_free, access_type, 
-       file_path, file_name, file_size, mime_type, thumbnail_url, preview_url, trailer_url, hls_manifest_url, is_published) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (title, description, media_type, price, artist, tags, is_free, access_type, 
+       file_path, file_name, file_size, mime_type, thumbnail_url, preview_url, is_published) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        title, description, is_live || false, media_type, priceNum, artist, rating || 0.0, release_date,
+        title, description, media_type, priceNum, artist,
         JSON.stringify(tags || []), is_free || false,
         access_type || 'paid', file_path, file_name, file_size, mime_type,
-        thumbnail_url, preview_url, trailer_url, hls_manifest_url, is_published
+        thumbnail_url, preview_url, is_published
       ]
     );
 
-    // Get the inserted record
-    const [newMedia] = await pool.query(
-      'SELECT * FROM media_items WHERE id = ?',
-      [result.insertId]
-    );
+    // Clear cache
+    await clearMediaCache();
 
-    if (newMedia[0].price !== undefined && newMedia[0].price !== null) {
-      newMedia[0].price = parseFloat(newMedia[0].price);
-    }
-
-    res.status(201).json({
-      success: true,
-      data: newMedia[0]
-    });
+    res.status(201).json({ success: true, data: { id: result.insertId } });
   } catch (error) {
     console.error('Error creating media:', error);
     res.status(500).json({ success: false, error: error.message });
@@ -183,6 +203,9 @@ exports.updateMedia = async (req, res) => {
       values
     );
 
+    // Clear cache
+    await clearMediaCache();
+
     res.json({ success: true, message: 'Media updated successfully' });
   } catch (error) {
     console.error('Error updating media:', error);
@@ -194,6 +217,10 @@ exports.updateMedia = async (req, res) => {
 exports.deleteMedia = async (req, res) => {
   try {
     await pool.query('DELETE FROM media_items WHERE id = ?', [req.params.id]);
+    
+    // Clear cache
+    await clearMediaCache();
+
     res.json({ success: true, message: 'Media deleted successfully' });
   } catch (error) {
     console.error('Error deleting media:', error);
@@ -201,40 +228,42 @@ exports.deleteMedia = async (req, res) => {
   }
 };
 
-// Upload file to disk (admin)
-exports.uploadFile = async (req, res) => {
+// Admin specific analytics/management
+exports.getMediaForAdmin = async (req, res) => {
   try {
-    if (!req.files || !req.files.file) {
-      return res.status(400).json({ success: false, error: 'No file uploaded' });
-    }
-
-    const file = req.files.file;
-    const uploadDir = __dirname + '/../../uploads';
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const timestamp = Date.now();
-    const uniqueName = `${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-    const uploadPath = uploadDir + '/' + uniqueName;
-
-    await file.mv(uploadPath);
-
-    res.json({
-      success: true,
-      file_path: `/uploads/${uniqueName}`,
-      file_name: file.name,
-      file_size: file.size,
-      mime_type: file.mimetype
-    });
+    const [media] = await pool.query(`
+      SELECT id, title, artist, price, media_type, is_published, 
+             purchase_count, play_count, created_at, updated_at
+      FROM media_items 
+      ORDER BY created_at DESC
+    `);
+    media.forEach(item => { item.price = parseFloat(item.price) || 0; });
+    res.json({ success: true, data: media });
   } catch (error) {
-    console.error('Error uploading file:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// Upload media with file (admin)
+exports.incrementPlayCount = async (req, res) => {
+  try {
+    await pool.query('UPDATE media_items SET play_count = play_count + 1 WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Play recorded' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.recordPurchase = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    await pool.query('UPDATE media_items SET purchase_count = purchase_count + 1, revenue = revenue + ? WHERE id = ?', [parseFloat(amount) || 0, req.params.id]);
+    res.json({ success: true, message: 'Purchase recorded' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// Upload media to Cloudinary (admin)
 exports.uploadMedia = async (req, res) => {
   try {
     if (!req.files || !req.files.file) {
@@ -244,60 +273,61 @@ exports.uploadMedia = async (req, res) => {
     const file = req.files.file;
     const {
       title, description, price, artist,
-      media_type = 'song', tags = '', is_published = true
+      media_type = 'movie', tags = '', is_published = true
     } = req.body;
 
+    // Use a temp path locally before uploading to Cloudinary
     const uploadDir = __dirname + '/../../uploads';
-
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
     const timestamp = Date.now();
     const uniqueName = `${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-    const uploadPath = uploadDir + '/' + uniqueName;
+    const tempPath = uploadDir + '/' + uniqueName;
 
-    await file.mv(uploadPath);
+    await file.mv(tempPath);
+
+    // Upload to Cloudinary
+    console.log('Uploading to Cloudinary...');
+    const result_cloud = await cloudinary.uploader.upload(tempPath, {
+        folder: 'proyenmovies',
+        resource_type: media_type === 'video' || file.mimetype.startsWith('video') ? 'video' : 'auto'
+    });
+
+    // Cleanup local temp file
+    fs.unlinkSync(tempPath);
 
     const priceNum = parseFloat(price) || 0.99;
-    const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    const tagsArray = typeof tags === 'string' ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : tags;
 
     const [result] = await pool.query(
       `INSERT INTO media_items 
       (title, description, media_type, price, artist, tags, file_path, file_name, 
-       file_size, mime_type, is_published, is_live, rating, release_date) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       file_size, mime_type, is_published) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         title || file.name,
         description || '',
         media_type,
         priceNum,
-        artist || 'Unknown Artist',
+        artist || 'ProyenMovies Artist',
         JSON.stringify(tagsArray),
-        `/uploads/${uniqueName}`,
+        result_cloud.secure_url, // Store Cloudinary URL
         file.name,
         file.size,
         file.mimetype,
-        is_published,
-        req.body.is_live === 'true',
-        parseFloat(req.body.rating) || 0.0,
-        req.body.release_date || null
+        is_published === 'true' || is_published === true
       ]
     );
 
-    const [newMedia] = await pool.query(
-      'SELECT * FROM media_items WHERE id = ?',
-      [result.insertId]
-    );
-
-    if (newMedia[0].price !== undefined && newMedia[0].price !== null) {
-      newMedia[0].price = parseFloat(newMedia[0].price);
-    }
+    // Clear cache
+    await clearMediaCache();
 
     res.status(201).json({
       success: true,
-      message: 'Media uploaded successfully',
-      data: newMedia[0]
+      message: 'Media uploaded successfully to Cloudinary',
+      data: { id: result.insertId, url: result_cloud.secure_url }
     });
   } catch (error) {
     console.error('Error uploading media:', error);
@@ -305,98 +335,29 @@ exports.uploadMedia = async (req, res) => {
   }
 };
 
-// NEW: Get media for admin (all media including drafts)
-exports.getMediaForAdmin = async (req, res) => {
-  try {
-    const [media] = await pool.query(`
-      SELECT id, title, artist, price, media_type, is_published, 
-             purchase_count, play_count, created_at, updated_at
-      FROM media_items 
-      ORDER BY created_at DESC
-    `);
-
-    media.forEach(item => {
-      if (item.price !== undefined && item.price !== null) {
-        item.price = parseFloat(item.price);
-      } else {
-        item.price = 0;
-      }
-    });
-
-    res.json({ success: true, data: media });
-  } catch (error) {
-    console.error('Error fetching media for admin:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// NEW: Increment play count
-exports.incrementPlayCount = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await pool.query(
-      'UPDATE media_items SET play_count = play_count + 1 WHERE id = ?',
-      [id]
-    );
-
-    res.json({ success: true, message: 'Play count incremented' });
-  } catch (error) {
-    console.error('Error incrementing play count:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// NEW: Increment purchase count and revenue
-exports.recordPurchase = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { amount } = req.body;
-
-    await pool.query(
-      'UPDATE media_items SET purchase_count = purchase_count + 1, revenue = revenue + ? WHERE id = ?',
-      [parseFloat(amount) || 0, id]
-    );
-
-    res.json({ success: true, message: 'Purchase recorded' });
-  } catch (error) {
-    console.error('Error recording purchase:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
-
-// NEW: Secure Download with Purchase/Subscription verification
+// Secure Download with Purchase/Subscription verification
 exports.downloadMedia = async (req, res) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
 
-    // 1. Get media details
     const [media] = await pool.query('SELECT * FROM media_items WHERE id = ?', [id]);
-    if (media.length === 0) {
-      return res.status(404).json({ success: false, error: 'Media not found' });
-    }
+    if (media.length === 0) return res.status(404).json({ success: false, error: 'Media not found' });
 
     const item = media[0];
 
-    // 2. Check if it's free
-    if (item.is_free) {
-        return serveFile(item, res);
-    }
+    if (item.is_free) return serveFile(item, res);
 
-    // 3. Check for active subscription
     const [subs] = await pool.query(
       'SELECT id FROM user_subscriptions WHERE user_id = ? AND status = "active" AND expires_at > NOW()',
       [userId]
     );
 
-    // 4. Check for individual purchase
     const [purchases] = await pool.query(
       'SELECT id FROM media_purchases WHERE user_id = ? AND media_id = ?',
       [userId, id]
     );
 
-    // 5. Authorized check
     if (subs.length > 0 || purchases.length > 0) {
       return serveFile(item, res);
     }
@@ -404,7 +365,7 @@ exports.downloadMedia = async (req, res) => {
     res.status(403).json({ 
       success: false, 
       error: 'Access Denied', 
-      message: 'You need an active subscription or a direct purchase to view/download this content.' 
+      message: 'Active subscription or purchase required.' 
     });
 
   } catch (error) {
@@ -413,17 +374,22 @@ exports.downloadMedia = async (req, res) => {
   }
 };
 
-// Helper to serve file
+// Helper to serve file (Handles Cloudinary URLs)
 function serveFile(item, res) {
+  if (item.file_path.startsWith('http')) {
+    // Redirect to Cloudinary secure URL for download
+    return res.redirect(item.file_path);
+  }
+  
   const filePath = __dirname + '/../../' + item.file_path;
   if (fs.existsSync(filePath)) {
     return res.download(filePath, item.file_name);
   } else {
-    return res.status(404).json({ success: false, error: 'Physical media file not found on server' });
+    return res.status(404).json({ success: false, error: 'Media file not found' });
   }
 }
 
-// NEW: Check if user has access to media (frontend helper)
+// Check if user has access to media (frontend helper)
 exports.checkAccess = async (req, res) => {
   try {
     if (!req.user) return res.json({ success: true, hasAccess: false });
@@ -454,4 +420,3 @@ exports.checkAccess = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
-
