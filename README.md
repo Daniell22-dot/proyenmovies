@@ -22,6 +22,9 @@ To reduce database latency by up to 90%, ProyenMovies implements a sophisticated
 - **Cache Invalidation (Write-Through)**: Whenever an admin creates, updates, or deletes a movie, the system triggers `clearMediaCache()`. This ensures absolute data consistency by purging the `media:*` keys immediately across the cluster.
 - **Verification**: Developers can monitor cache health via the `source` header in JSON responses (`database` for first hit, `cache` for subsequent hits).
 
+  <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/62d0c18d-913a-48a0-a7bc-cd25114509e3" />
+
+
 ### 2. Cloudinary CDN Integration (Media Hosting)
 We have moved away from local disk storage to a professional Cloud-Native approach:
 - **Infinite Scalability**: Media assets (Thumbnails, Trailers, Full Movies) are streamed directly to Cloudinary, bypassing server-side bottlenecks.
