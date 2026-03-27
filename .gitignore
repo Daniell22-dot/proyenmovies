@@ -41,3 +41,4 @@ next-env.d.ts
 store.html.html
 settings.json 
 node_modules/
+.bin
