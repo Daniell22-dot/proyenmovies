@@ -24,6 +24,12 @@ To reduce database latency by up to 90%, ProyenMovies implements a sophisticated
 
   <img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/62d0c18d-913a-48a0-a7bc-cd25114509e3" />
 
+  <img width="1366" height="690" alt="image" src="https://github.com/user-attachments/assets/f663b031-db80-4338-be6c-cd0d1fb9a821" />
+
+  <img width="1366" height="679" alt="image" src="https://github.com/user-attachments/assets/09f6aa3b-4ccc-4127-a680-e4274170b291" />
+
+
+
 
 ### 2. Cloudinary CDN Integration (Media Hosting)
 We have moved away from local disk storage to a professional Cloud-Native approach:
