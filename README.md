@@ -1,8 +1,8 @@
-# ProyenMovies 🎬
+# ProyenMovies 
 
 ProyenMovies is a premium cinematic streaming platform built with modern web technologies. This application allows users to discover trending movies, explore new releases, subscribe to premium plans, and stream top-tier entertainment effortlessly.
 
-## 🚀 Tech Stack
+##  Tech Stack
 
 *   **Frontend Framework**: [Next.js 14 (App Router)](https://nextjs.org/)
 *   **Styling**: [Tailwind CSS](https://tailwindcss.com/)
@@ -10,7 +10,7 @@ ProyenMovies is a premium cinematic streaming platform built with modern web tec
 *   **Payment Gateway**: [Stripe](https://stripe.com/)
 *   **Database/Backend API**: Custom Express API with MySQL (`localhost:5000/api`)
 
-## ✨ Features
+##  Features
 
 *   **Cinematic UI/UX**: Dark mode aesthetic with premium styling and responsive design.
 *   **Browse & Discovery**: Easily search, filter, and discover movies and TV shows.
@@ -18,7 +18,7 @@ ProyenMovies is a premium cinematic streaming platform built with modern web tec
 *   **Stripe Integration**: Secure checkout sessions and webhook handling for premium subscriptions.
 *   **Admin Dashboard**: Manage media, track user statistics, and upload new content.
 
-## 📦 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -55,7 +55,7 @@ ProyenMovies is a premium cinematic streaming platform built with modern web tec
 
 5.  Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## 🗄️ Project Structure
+##  Project Structure
 
 *   `app/`: Next.js App Router pages and layouts.
     *   `(public)/`: Routes accessible by public users (e.g., `/browse`, `/movie/[id]`, `/payment`).
@@ -65,6 +65,6 @@ ProyenMovies is a premium cinematic streaming platform built with modern web tec
 *   `lib/`: Utility functions and database/API hooks (`database.ts`, `api.ts`).
 *   `type/`: TypeScript interfaces and type definitions.
 
-## 🤝 Contributing
+##  Contributing
 
 When contributing to this project, please ensure all new routes use the `app/` directory and components respect the dark-theme aesthetic defined in `globals.css`. Ensure no legacy mock audio/song data is committed to the codebase.
