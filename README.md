@@ -32,11 +32,22 @@ To reduce database latency by up to 90%, ProyenMovies implements a sophisticated
 
 
 ### 2. Cloudinary CDN Integration (Media Hosting)
+
+<img width="1366" height="684" alt="image" src="https://github.com/user-attachments/assets/466ecd47-ec94-4dce-93de-1fbeaf6e9fa1" />
+
+
 We have moved away from local disk storage to a professional Cloud-Native approach:
 - **Infinite Scalability**: Media assets (Thumbnails, Trailers, Full Movies) are streamed directly to Cloudinary, bypassing server-side bottlenecks.
+
+<img width="1366" height="678" alt="image" src="https://github.com/user-attachments/assets/469336af-4c5f-4b01-a8b4-51c7597e6fda" />
+
+- 
 - **Global Delivery**: Assets are served through Cloudinary's multi-CDN network, reducing buffering for users regardless of their geographical location.
 - **Secure URLs**: All media is delivered over secure HTTPS (`secure_url`), with support for private transformations and restricted access tokens.
 - **Storage Workflow**: The backend generates a temporary local stream before performing an asynchronous upload to the `proyenmovies` Cloudinary folder, ensuring that the primary database only stores production-ready CDN URLs.
+<img width="1366" height="688" alt="image" src="https://github.com/user-attachments/assets/88710554-9e6d-4248-b104-e3b7133b4b54" />
+
+<img width="1366" height="679" alt="image" src="https://github.com/user-attachments/assets/1d053803-1409-4585-89f3-900cd88090ba" />
 
 ### 3. API Architecture & Versioning
 ProyenMovies follows a RESTful API pattern designed for future growth:
